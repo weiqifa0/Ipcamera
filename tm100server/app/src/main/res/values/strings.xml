@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 请替换成在语音云官网申请的appid -->
+    <string name="app_id">5694a469</string>
+    <string name="app_name">Tm100services</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+
+    <string name="msg_access_local">Open with browser : </string>
+    <string name="msg_wifi_error">Error: Please enable wifi</string>
+    <string name="msg_port_error">Error: 8080 port is in used </string>
+</resources>
