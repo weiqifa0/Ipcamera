@@ -1,6 +1,5 @@
 function TeaMedia(blob, parseDone) {
     // vars
-    this.pcmBlocks = null;
     this.nalBlocks = null;
 
     // call backs
@@ -22,7 +21,7 @@ function TeaMedia(blob, parseDone) {
         if ( payload[i] === 0x19 && payload[i+1] === 0x79) {
 
             block.type = 1;
-            block.timeStamp = (payload[i+3] << 8) + payload[i+2];
+            //block.timeStamp = (payload[i+3] << 8) + payload[i+2];
             block.length = (payload[i+7] << 24) + (payload[i+6] << 16) + (payload[i+5] << 8) + payload[i+4];
         }
 
@@ -33,23 +32,22 @@ function TeaMedia(blob, parseDone) {
     this._decodeBuffer = function(arrayBuffer) {
         var payload = new Uint8Array(arrayBuffer);
 
-        if ( payload.length <= 8) {
-            // drop left data, because it is not a packet.
-            return;
-        }
+            if ( payload.length <= 8) {
+                // drop left data, because it is not a packet.
+                return;
+            }
 
-        var block = this._findNext(payload, i);
-        if ( block.type === 1 ) {
-            block.payload = payload.subarray(8, 8+block.length);
-            this.nalBlocks.push(block);
-        }
+            var block = this._findNext(payload, 0);
+            if ( block.type === 1 ) {
+                block.payload = payload.subarray(8, 8+block.length);
+                this.nalBlocks.push(block);
+            }
 
         this.onParseDone();
 
     }.bind(this);
 
     this._constructor = function() {
-        this.pcmBlocks = [];
         this.nalBlocks = [];
 
         var fileReader = new FileReader();

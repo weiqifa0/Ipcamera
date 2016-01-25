@@ -10,8 +10,13 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 
 import com.timescript.tm100server.R;
@@ -40,16 +45,17 @@ public class VideoActivity extends Activity
     public static String TAG="TIMECam";
     private final int ServerPort = 8080;
     private final int StreamingPort = 8088;
-    private final int PictureWidth = 320;
-    private final int PictureHeight = 240;
+    private final int PictureWidth = 320;//176;
+    private final int PictureHeight = 240;//144;
     private final int MediaBlockNumber = 2;//3;
     private final int MediaBlockSize = 1024*512;//1024*512;
     private final int EstimatedFrameNumber = 1;//3;
-    private final int StreamingInterval = 120;//100;
+    private final int StreamingInterval = 40;//100;
 
     private StreamingServer streamingServer = null;
     private TeaServer webServer = null;
     private CameraView cameraView = null;
+    private WebView webView;
 
     ExecutorService executor = Executors.newFixedThreadPool(3);
     VideoEncodingTask videoTask = new  VideoEncodingTask();
@@ -81,6 +87,9 @@ public class VideoActivity extends Activity
         // load and setup GUI
         super.onCreate(savedInstanceState);
         setContentView(R.layout.video);
+        //setContentView(R.layout.video_test);
+        //webView = (WebView) findViewById(R.id.webview);
+
 
         // init audio and camera
         for(int i = 0; i < MediaBlockNumber; i++) {
@@ -110,6 +119,8 @@ public class VideoActivity extends Activity
                 doStreaming();
             }
         }, StreamingInterval);
+
+        //loadWebView();
     }
     @Override
     public void onDestroy() {
@@ -122,6 +133,30 @@ public class VideoActivity extends Activity
         exit();
 
         //System.exit(0);
+    }
+
+    public void loadWebView() {
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webView.setWebChromeClient(new WebChromeClient() {
+
+            @Override
+            public void onShowCustomView(View view, CustomViewCallback callback) {
+                // TODO Auto-generated method stub
+                super.onShowCustomView(view, callback);
+            }
+
+        });
+        webView.loadUrl("http://127.0.0.1:8080");
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // TODO Auto-generated method stub
+                // 返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
+                view.loadUrl(url);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -333,7 +368,7 @@ public class VideoActivity extends Activity
         }
 
         public void run() {
-            if(streamingServer.inStreaming == false) {
+            if((streamingServer!=null) && (streamingServer.inStreaming == false)) {
                 inProcessing = false;
                 return;
             }
@@ -347,15 +382,15 @@ public class VideoActivity extends Activity
             if ( currentBlock.videoCount == 0) {
                 intraFlag = 1;
             }
-            int millis = (int)(System.currentTimeMillis() % 65535);
+            //int millis = (int)(System.currentTimeMillis() % 65535);
             int ret = nativeDoVideoEncode(yuvFrame, resultNal, intraFlag);
             if ( ret <= 0) {
                 return;
             }
 
             // timestamp
-            videoHeader[2] = (byte)(millis & 0xFF);
-            videoHeader[3] = (byte)((millis>>8) & 0xFF);
+            //videoHeader[2] = (byte)(millis & 0xFF);
+            //videoHeader[3] = (byte)((millis>>8) & 0xFF);
             // length
             videoHeader[4] = (byte)(ret & 0xFF);
             videoHeader[5] = (byte)((ret>>8) & 0xFF);

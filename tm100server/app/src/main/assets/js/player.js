@@ -12,7 +12,7 @@ function Player (canvas, sampleRate) {
     this._canvas = null;
     this._canvasContext = null;
     this._rgba = null;
-    this._renderInterval = 20;
+    this._renderInterval = 40;
 
     this._playedTime = -1;
     this._lastTime = -1;
@@ -38,11 +38,10 @@ function Player (canvas, sampleRate) {
         this._avc = new Avc();
 
         setInterval(this._playVideo, this._renderInterval);
-        //requestAnimFrame(this._playVideo);
     }.bind(this);
 
     this.playMedia = function(media) {
-        if ( this._videoBufferList.length > 150) {
+        if ( this._videoBufferList.length > 5) {
             return;
         }   
         
@@ -53,33 +52,13 @@ function Player (canvas, sampleRate) {
             picture = {'yuv':yuv, 'wid':wid, 'hei':hei};
         }.bind(this);
 
-        /*
-        var doDecode = function(first) {
-            if ( media.nalBlocks.length > 0) {
-                picture = null;
-                this._avc.decode(media.nalBlocks[0].payload);
-                if( picture != null) {
-                    picture.timeStamp = media.nalBlocks[0].timeStamp;
-                    picture.flag = first;
-                    this._videoBufferList.push(picture);
-                }
-                media.nalBlocks.shift();
-                setTimeout(doDecode(false), 2);
-            } else {
-                delete media;
-
-            }
-        }.bind(this);
-        doDecode(true);
-        */
-
         for (i = 0; i < media.nalBlocks.length; i++) {
             picture = null;
             this._avc.decode(media.nalBlocks[i].payload);
             if( picture != null) {
                 picture.timeStamp = media.nalBlocks[i].timeStamp;
+                console.log("time: " + picture.timeStamp);
                 if ( i === 0) {
-                    //console.log(">>>>> " +  picture.timeStamp);
                     picture.flag = true;
                 } else {
                     picture.flag = false;
@@ -106,39 +85,11 @@ function Player (canvas, sampleRate) {
     }.bind(this);
 
     this._playVideo = function() {
-        //requestAnimFrame(this._playVideo);
         if ( this._videoBufferList.length > 0) {
             this._showPicture(this._videoBufferList[0] );
             delete this._videoBufferList[0];
             this._videoBufferList.shift();
         }
-        /*
-        if ( this._videoBufferList.length > 0) {
-            if ( this._videoBufferList[0].flag === true) {
-                this._playedTime = this._videoBufferList[0].timeStamp;
-                this._lastVideoTime = this._videoBufferList[0].timeStamp;
-                this._videoTime = 0;
-            } else {
-                this._playedTime += (new Date()).getTime() - this._lastTime;
-            }
-
-            //console.log(this._playedTime + " vs " + this._videoTime + this._videoBufferList[0].timeStamp );
-
-            if ( this._playedTime >= this._videoTime + this._videoBufferList[0].timeStamp ) {
-                // updated video time
-                if (  this._videoBufferList[0].timeStamp < this._lastVideoTime ) {
-                    this._videoTime += 65535;
-                }
-                this._lastVideoTime = this._videoBufferList[0].timeStamp;
-
-                //console.log(">>>>> " +  this._videoBufferList[0].timeStamp)
-                this._showPicture(this._videoBufferList[0] );
-                delete this._videoBufferList[0];
-                this._videoBufferList.shift();
-            }
-        }
-        */
-        this._lastTime = (new Date()).getTime();
     }.bind(this);
 
     this._pushVideoBuffer = function(picture) {

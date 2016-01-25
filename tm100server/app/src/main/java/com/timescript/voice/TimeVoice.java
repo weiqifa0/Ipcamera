@@ -140,6 +140,7 @@ public class TimeVoice {
              * TODO 本地合成不设置语速、音调、音量，默认使用语记设置
              * 开发者如需自定义参数，请参考在线合成参数设置
              */
+            mTts.setParameter(SpeechConstant.VOLUME, "1");
         }
         //设置播放器音频流类型
         mTts.setParameter(SpeechConstant.STREAM_TYPE, "3");
